@@ -32,7 +32,10 @@ public class MatchService {
     }
 
     public Match createMatch(Match match) {
-        if (match.getOpenTime() == null || !match.getOpenTime().isAfter(java.time.LocalDateTime.now())) {
+        java.time.LocalDateTime now = java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Ho_Chi_Minh"));
+        if (!match.getMatchTime().isAfter(now)) {
+            match.setStatus(MatchStatus.LOCKED);
+        } else if (match.getOpenTime() == null || !match.getOpenTime().isAfter(now)) {
             match.setStatus(MatchStatus.OPEN);
         } else {
             match.setStatus(MatchStatus.PENDING);
@@ -43,7 +46,7 @@ public class MatchService {
     @org.springframework.scheduling.annotation.Scheduled(fixedRate = 10000)
     @Transactional
     public void updateMatchStatuses() {
-        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        java.time.LocalDateTime now = java.time.LocalDateTime.now(java.time.ZoneId.of("Asia/Ho_Chi_Minh"));
         
         List<Match> pendingMatches = matchRepository.findByStatusOrderByMatchTimeAsc(MatchStatus.PENDING);
         for (Match match : pendingMatches) {
