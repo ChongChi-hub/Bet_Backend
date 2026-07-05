@@ -11,8 +11,6 @@ import java.math.BigDecimal;
 public class UserLeaderboardDTO {
     private Long id;
     private String fullName;
-    private String email;
-    private String phoneNumber;
     private long correctPredictions;
     private BigDecimal totalPrizeWon; // this could be totalBalance
 }

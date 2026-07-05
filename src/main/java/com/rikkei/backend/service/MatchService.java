@@ -32,8 +32,34 @@ public class MatchService {
     }
 
     public Match createMatch(Match match) {
-        match.setStatus(MatchStatus.OPEN);
+        if (match.getOpenTime() == null || !match.getOpenTime().isAfter(java.time.LocalDateTime.now())) {
+            match.setStatus(MatchStatus.OPEN);
+        } else {
+            match.setStatus(MatchStatus.PENDING);
+        }
         return matchRepository.save(match);
+    }
+
+    @org.springframework.scheduling.annotation.Scheduled(fixedRate = 10000)
+    @Transactional
+    public void updateMatchStatuses() {
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        
+        List<Match> pendingMatches = matchRepository.findByStatusOrderByMatchTimeAsc(MatchStatus.PENDING);
+        for (Match match : pendingMatches) {
+            if (match.getOpenTime() == null || !match.getOpenTime().isAfter(now)) {
+                match.setStatus(MatchStatus.OPEN);
+                matchRepository.save(match);
+            }
+        }
+        
+        List<Match> openMatches = matchRepository.findByStatusOrderByMatchTimeAsc(MatchStatus.OPEN);
+        for (Match match : openMatches) {
+            if (!match.getMatchTime().isAfter(now)) {
+                match.setStatus(MatchStatus.LOCKED);
+                matchRepository.save(match);
+            }
+        }
     }
 
     @Transactional

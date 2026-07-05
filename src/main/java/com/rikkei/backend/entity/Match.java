@@ -21,6 +21,9 @@ public class Match {
     @Column(name = "team_b", nullable = false)
     private String teamB;
 
+    @Column(name = "open_time")
+    private LocalDateTime openTime;
+
     @Column(name = "match_time", nullable = false)
     private LocalDateTime matchTime;
 

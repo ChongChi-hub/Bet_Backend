@@ -25,10 +25,10 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        if (userRepository.findByEmail("admin").isEmpty()) {
+        if (userRepository.findByUsername("admin").isEmpty()) {
             User admin = new User();
+            admin.setUsername("admin");
             admin.setFullName("Admin Manager");
-            admin.setEmail("admin");
             admin.setPassword(passwordEncoder.encode("123123"));
             admin.setRole(com.rikkei.backend.entity.Role.ADMIN);
             userRepository.save(admin);

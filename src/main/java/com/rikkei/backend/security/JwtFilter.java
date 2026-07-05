@@ -36,7 +36,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 
                 String role = "ROLE_ADMIN"; // Default for hardcoded admin
                 if (!"admin".equals(username)) {
-                    var userOpt = userRepository.findByEmail(username);
+                    var userOpt = userRepository.findByUsername(username);
                     if (userOpt.isPresent()) {
                         role = "ROLE_" + userOpt.get().getRole().name();
                     }

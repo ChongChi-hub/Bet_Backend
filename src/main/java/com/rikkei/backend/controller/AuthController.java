@@ -24,13 +24,8 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
-        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Email đã tồn tại"));
-        }
-        if (user.getPhoneNumber() != null && !user.getPhoneNumber().trim().isEmpty()) {
-            if (userRepository.findByPhoneNumber(user.getPhoneNumber()).isPresent()) {
-                return ResponseEntity.badRequest().body(Map.of("message", "Số điện thoại đã tồn tại"));
-            }
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Username đã tồn tại"));
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole(Role.USER);
@@ -40,11 +35,11 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
-        String email = credentials.get("email");
+        String username = credentials.get("username");
         String password = credentials.get("password");
 
         // Hardcoded admin for old interface support
-        if ("admin".equals(email) && "admin123".equals(password)) {
+        if ("admin".equals(username) && "123123".equals(password)) {
             String jwt = jwtUtils.generateToken("admin");
             Map<String, String> response = new HashMap<>();
             response.put("token", jwt);
@@ -52,10 +47,10 @@ public class AuthController {
             return ResponseEntity.ok(response);
         }
 
-        Optional<User> userOpt = userRepository.findByEmail(email);
+        Optional<User> userOpt = userRepository.findByUsername(username);
         if (userOpt.isPresent() && passwordEncoder.matches(password, userOpt.get().getPassword())) {
             User user = userOpt.get();
-            String jwt = jwtUtils.generateToken(user.getEmail());
+            String jwt = jwtUtils.generateToken(user.getUsername());
             Map<String, String> response = new HashMap<>();
             response.put("token", jwt);
             response.put("role", user.getRole().name());
@@ -63,17 +58,17 @@ public class AuthController {
             return ResponseEntity.ok(response);
         }
 
-        return ResponseEntity.status(401).body(Map.of("message", "Email hoặc mật khẩu không chính xác"));
+        return ResponseEntity.status(401).body(Map.of("message", "Username hoặc mật khẩu không chính xác"));
     }
 
     @PutMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> payload) {
-        String email = payload.get("email");
+        String username = payload.get("username");
         String newPassword = payload.get("password");
 
-        Optional<User> userOpt = userRepository.findByEmail(email);
+        Optional<User> userOpt = userRepository.findByUsername(username);
         if (userOpt.isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Email không tồn tại"));
+            return ResponseEntity.badRequest().body(Map.of("message", "Người dùng không tồn tại"));
         }
 
         User user = userOpt.get();
@@ -85,8 +80,8 @@ public class AuthController {
 
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser() {
-        String email = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
-        Optional<User> userOpt = userRepository.findByEmail(email);
+        String username = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        Optional<User> userOpt = userRepository.findByUsername(username);
         if (userOpt.isPresent()) {
             return ResponseEntity.ok(userOpt.get());
         }

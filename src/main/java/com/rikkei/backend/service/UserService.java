@@ -29,8 +29,6 @@ public class UserService {
                 return new com.rikkei.backend.dto.UserLeaderboardDTO(
                     user.getId(),
                     user.getFullName(),
-                    user.getEmail(),
-                    user.getPhoneNumber(),
                     correctCount,
                     user.getTotalBalance()
                 );
@@ -59,9 +57,7 @@ public class UserService {
 
     public User updateUser(Long id, User details) {
         User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
-        user.setEmail(details.getEmail());
         user.setFullName(details.getFullName());
-        user.setPhoneNumber(details.getPhoneNumber());
         if (details.getRole() != null) {
             user.setRole(details.getRole());
         }

@@ -22,33 +22,32 @@ public class PredictionService {
     private final UserRepository userRepository;
 
     @Transactional
-    public Prediction submitPrediction(String email, Long matchId, String predictedValue) {
+    public Prediction submitPrediction(String username, Long matchId, String predictedValue) {
         Match match = matchRepository.findById(matchId)
-                .orElseThrow(() -> new RuntimeException("Match not found"));
+                .orElseThrow(() -> new RuntimeException("Trận đấu không tồn tại"));
 
         if (match.getStatus() != MatchStatus.OPEN) {
-            throw new RuntimeException("Match is no longer OPEN for predictions");
+            throw new RuntimeException("Trận đấu đã bị khóa hoặc đã chốt kết quả");
         }
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
-        Optional<Prediction> existingOpt = predictionRepository.findByUserIdAndMatchId(user.getId(), matchId);
-        if (existingOpt.isPresent()) {
-            Prediction existing = existingOpt.get();
-            existing.setPredictedValue(predictedValue);
-            return predictionRepository.save(existing);
-        } else {
-            Prediction newPrediction = new Prediction();
-            newPrediction.setMatch(match);
-            newPrediction.setUser(user);
-            newPrediction.setPredictedValue(predictedValue);
-            return predictionRepository.save(newPrediction);
+        Optional<Prediction> existing = predictionRepository.findByUserIdAndMatchId(user.getId(), matchId);
+        if (existing.isPresent()) {
+            Prediction p = existing.get();
+            p.setPredictedValue(predictedValue);
+            return predictionRepository.save(p);
         }
+
+        Prediction p = new Prediction();
+        p.setMatch(match);
+        p.setUser(user);
+        p.setPredictedValue(predictedValue);
+        return predictionRepository.save(p);
     }
 
-    @Transactional(readOnly = true)
-    public java.util.List<Prediction> getMyPredictions(String email) {
-        return predictionRepository.findByUserEmail(email);
+    public java.util.List<Prediction> getMyPredictions(String username) {
+        return predictionRepository.findByUserUsername(username);
     }
 }
