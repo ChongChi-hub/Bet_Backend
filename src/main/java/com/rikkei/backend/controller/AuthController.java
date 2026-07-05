@@ -24,13 +24,21 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
-        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Username đã tồn tại"));
+        try {
+            if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Username đã tồn tại"));
+            }
+            if (user.getTotalBalance() == null) {
+                user.setTotalBalance(java.math.BigDecimal.ZERO);
+            }
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            user.setRole(Role.USER);
+            userRepository.save(user);
+            return ResponseEntity.ok(Map.of("message", "Đăng ký thành công"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(Map.of("message", "Lỗi server: " + e.getMessage()));
         }
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setRole(Role.USER);
-        userRepository.save(user);
-        return ResponseEntity.ok(Map.of("message", "Đăng ký thành công"));
     }
 
     @PostMapping("/login")
